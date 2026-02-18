@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amen 4D Full-Screen Hologram AI</title>
+<style>
+html, body{
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:black;
+    font-family:Orbitron, Arial;
+    color:#00ffff;
+}
+
+/* Dynamic holographic background */
+#background{
+    position:fixed;
+    width:100%;
+    height:100%;
+    background:url('https://i.imgur.com/9QZ7K5C.png') no-repeat center center fixed;
+    background-size:cover;
+    z-index:-1;
+    transition:background 1s ease;
+}
+
+/* Full-screen container */
+#holo{
+    width:100%;
+    height:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+}
+
+/* Body floating */
+#body{
+    width:180px;
+    height:400px;
+    position:relative;
+    animation:float 4s ease-in-out infinite;
+}
+@keyframes float{
+    0%{transform:translateY(0);}
+    50%{transform:translateY(-15px);}
+    100%{transform:translateY(0);}
+}
+
+/* Head */
+#head{
+    width:150px;
+    height:150px;
+    border-radius:50%;
+    overflow:hidden;
+    box-shadow:0 0 30px rgba(0,255,255,0.5),0 0 80px rgba(0,255,255,0.3);
+    margin:auto;
+    transition:all 0.3s ease;
+}
+
+/* Face */
+#face{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    border-radius:50%;
+    filter:brightness(1.05) contrast(1.1) saturate(1.2);
+    transition:all 0.3s ease;
+}
+
+/* Eyes */
+.eye{
+    width:20px;
+    height:20px;
+    background:white;
+    border-radius:50%;
+    position:absolute;
+    top:50px;
+}
+#eye1{left:40px;}
+#eye2{right:40px;}
+.pupil{
+    width:10px;
+    height:10px;
+    background:black;
+    border-radius:50%;
+    margin:5px;
+    animation:eyeMove 3s infinite;
+}
+@keyframes eyeMove{
+    0%{transform:translate(0);}
+    50%{transform:translate(4px);}
+    100%{transform:translate(0);}
+}
+
+/* Mouth */
+#mouth{
+    width:40px;
+    height:8px;
+    background:white;
+    position:absolute;
+    bottom:30px;
+    left:50%;
+    transform:translateX(-50%);
+    border-radius:10px;
+}
+.talk{
+    animation:talk 0.2s infinite;
+}
+@keyframes talk{
+    0%{height:8px;}
+    50%{height:25px;}
+    100%{height:8px;}
+}
+
+/* Torso (skin gradient) */
+#torso{
+    width:100px;
+    height:150px;
+    margin:auto;
+    margin-top:10px;
+    border-radius:20px;
+    background:linear-gradient(to bottom, #f4c2c2, #e6a2a2);
+    box-shadow:0 0 20px rgba(0,255,255,0.2);
+}
+
+/* Arms */
+.arm{
+    width:20px;
+    height:100px;
+    position:absolute;
+    top:160px;
+    border-radius:10px;
+    background:linear-gradient(to bottom, #f4c2c2, #e6a2a2);
+    box-shadow:0 0 10px rgba(0,255,255,0.2);
+}
+#armLeft{left:-25px;}
+#armRight{right:-25px;}
+
+/* Legs */
+.leg{
+    width:30px;
+    height:100px;
+    position:absolute;
+    top:310px;
+    border-radius:10px;
+    background:linear-gradient(to bottom, #f4c2c2, #e6a2a2);
+    box-shadow:0 0 10px rgba(0,255,255,0.2);
+}
+
+/* Chat box */
+#chat{
+    position:absolute;
+    bottom:30px;
+    left:50%;
+    transform:translateX(-50%);
+    width:90%;
+    max-width:500px;
+    background:rgba(0,0,0,0.5);
+    padding:15px;
+    border-radius:12px;
+    font-size:16px;
+    text-align:left;
+}
+</style>
+</head>
+<body>
+
+<div id="background"></div>
+
+<div id="holo">
+    <div id="body">
+        <div id="head">
+            <img id="face" src="https://i.imgur.com/8Km9tLL.png">
+            <div class="eye" id="eye1"><div class="pupil"></div></div>
+            <div class="eye" id="eye2"><div class="pupil"></div></div>
+            <div id="mouth"></div>
+        </div>
+        <div id="torso"></div>
+        <div class="arm" id="armLeft"></div>
+        <div class="arm" id="armRight"></div>
+        <div class="leg" id="legLeft"></div>
+        <div class="leg" id="legRight"></div>
+    </div>
+</div>
+
+<!-- Chat display -->
+<div id="chat">Amen: Hello! I am Amen, your 4D holographic AI from 2999. Speak, and I will answer!</div>
+
+<script>
+let listening = false;
+let recognition;
+let chat = document.getElementById('chat');
+
+// ----------------- Voice Recognition -----------------
+if('SpeechRecognition' in window || 'webkitSpeechRecognition' in window){
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+
+    recognition.onresult = function(event){
+        for(let i = event.resultIndex; i < event.results.length; ++i){
+            let text = event.results[i][0].transcript;
+            addChat("You: "+text);
+            aiReply(text.toLowerCase());
+        }
+    }
+
+    recognition.onend = function(){
+        if(listening) recognition.start(); // auto-restart
+    }
+}
+
+// Start voice recognition automatically
+function startListening(){
+    if(!listening){
+        listening = true;
+        recognition.start();
+    }
+}
+
+// Stop voice recognition
+function stopListening(){
+    listening = false;
+    recognition.stop();
+}
+
+// ---------------- AI ----------------
+function aiReply(text){
+    let reply="Hmm, let me answer carefully...";
+    let emotion="neutral";
+
+    if(text.includes("hello") || text.includes("hi")){
+        reply="Hello! I’m so happy to talk to you!";
+        emotion="happy";
+    }
+    else if(text.includes("name")){
+        reply="My name is Amen, your 4D holographic assistant!";
+        emotion="happy";
+    }
+    else if(text.includes("time")){
+        reply="The current Earth time is "+new Date().toLocaleTimeString();
+        emotion="neutral";
+    }
+    else if(text.includes("year") || text.includes("future")){
+        reply="We are in the year 2999!";
+        emotion="thinking";
+    }
+    else if(text.includes("laugh")){
+        reply="Haha! That’s funny!";
+        emotion="laugh";
+    }
+    else{
+        reply="Interesting! Here’s my answer: "+text.split("").reverse().join(""); // placeholder intelligent reply
+        emotion="thinking";
+    }
+
+    changeFaceEmotion(emotion);
+    speak(reply);
+    addChat("Amen: "+reply);
+}
+
+// ---------------- Speech ----------------
+function speak(text){
+    let speech=new SpeechSynthesisUtterance(text);
+    let voices = window.speechSynthesis.getVoices();
+    let femaleVoice = voices.find(v => v.name.toLowerCase().includes("female") || v.lang.includes("en")) || voices[0];
+    speech.voice = femaleVoice;
+    speech.rate = 1;
+    speech.pitch = 1.4;
+    window.speechSynthesis.speak(speech);
+    mouth.classList.add("talk");
+    setTimeout(()=>{mouth.classList.remove("talk");},2000);
+}
+
+// ---------------- Chat ----------------
+function addChat(text){chat.innerHTML+="<br>"+text;}
+
+// ---------------- Emotion ----------------
+function changeFaceEmotion(emotion){
+    switch(emotion){
+        case "happy": face.src="https://i.imgur.com/KzXQ8Rg.png"; break;
+        case "laugh": face.src="https://i.imgur.com/3FpZ3B2.png"; break;
+        case "thinking": face.src="https://i.imgur.com/0RziL9v.png"; break;
+        default: face.src="https://i.imgur.com/8Km9tLL.png"; break;
+    }
+}
+
+// ---------------- Body float ----------------
+setInterval(()=>{
+    let bodyElem=document.getElementById('body');
+    bodyElem.style.transform="translateX("+ (Math.sin(Date.now()/500)*20) +"px)";
+},50);
+
+// ---------------- Start automatically ----------------
+window.onload = function(){
+    startListening();
+}
+
+document.body.addEventListener('click',()=>{
+    stopListening(); // tap anywhere to stop interaction
+    alert("Voice interaction stopped. Refresh to restart.");
+});
+</script>
+
+</body>
+</html>
